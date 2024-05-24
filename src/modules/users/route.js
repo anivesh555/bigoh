@@ -7,10 +7,7 @@ const {
   registerUser,
   login,
   logout,
-//   renewToken,
-//   getAccount,
-//   getAllUsers,
-//   updateUser,
+
 } = require("./controller");
 const {
   verifyToken,
