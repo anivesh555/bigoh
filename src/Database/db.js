@@ -1,51 +1,26 @@
-// const { Pool } = require('pg');
-// const constants = require("../utilities/constants");
+
+const { Sequelize } = require('sequelize');
 
 
-// const pool = new Pool({
-//     user: 'postgres',
-//     host: 'localhost',
-//     database: 'indigo',
-//     password: '123',
-//     port: 8100, 
-//   });
+const user = process.env.USER || 'postgres'
+const host= process.env.HOST ||  'localhost'
+const database= process.env.DATABASE ||  'bigoh'
+const password= process.env.PASSWORD || '123'
+const port= process.env.DB_PORT || 8100
 
-// pool.on('error', (err) => {
-//     console.error('Error connecting to the database:', err);
-//   });
-
-// pool.on('connect', () => {  
-//   console.log('Connected to the database');
-// });
-// pool.connect((err, client, release) => {
-//   if (err) {
-//     console.error('Error acquiring client:', err);
-//     return;
-//   }
-
-
-//   // Don't forget to release the client when done with it
-//   release();
-  
-
-// });
-const { Pool } = require('pg');
-const constants = require("../utilities/constants");
-
-const pool = new Pool({
-  user: process.env.USER || 'postgres',
-  host: process.env.HOST ||  'localhost',
-  database: process.env.DATABASE ||  'indigo',
-  password: process.env.PASSWORD || '123',
-  port: process.env.DB_PORT || 8100,
+const sequelize = new Sequelize(database, user, password, {
+  host: host,
+  port: port,
+  dialect: 'postgres',
+  logging: false,  // Disable logging; default: console.log
 });
 
-pool.on('error', (err) => {
-  console.error('Error connecting to the database:', err);
-});
+sequelize.authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
+  })
+  .catch(err => {
+    console.error('Unable to connect to the database:', err);
+  });
 
-pool.on('connect', () => {
-  console.log('Connected to the database');
-});
-
-module.exports = pool;
+module.exports = sequelize;

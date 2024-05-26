@@ -1,3 +1,7 @@
+
+const { DataTypes } = require('sequelize');
+const sequelize = require('./../Database/db');
+
 function generateCreateTableQuery(tableName, fields) {
     console.log(tableName, fields,"==>")
     let query = `CREATE TABLE IF NOT EXISTS ${tableName} (`;
@@ -63,4 +67,75 @@ function validateFormData(data) {
 
     return { valid: true };
 }
-module.exports = {generateCreateTableQuery,validateFormData}
+
+
+const generateDynamicModel = (tableName, fields) => {
+  const attributes = {};
+
+  Object.keys(fields).forEach(fieldName => {
+    const fieldType = fields[fieldName];
+    let sequelizeType;
+
+    switch (fieldType) {
+      case 'uuid':
+        sequelizeType = DataTypes.UUID;
+        break;
+      case 'string':
+        sequelizeType = DataTypes.STRING;
+        break;
+      case 'email':
+        sequelizeType = DataTypes.STRING; // Add validation in model options below
+        break;
+      case 'number':
+        sequelizeType = DataTypes.NUMERIC;
+        break;
+      case 'boolean':
+        sequelizeType = DataTypes.BOOLEAN;
+        break;
+      default:
+        throw new Error(`Unsupported field type: ${fieldType}`);
+    }
+
+    attributes[fieldName] = {
+      type: sequelizeType,
+      allowNull: false
+    };
+
+    // Add additional validation for email
+    if (fieldType === 'email') {
+      attributes[fieldName].validate = {
+        isEmail: true
+      };
+    }
+  });
+
+  // Add primary key constraint for uniqueId
+  attributes.uniqueId = {
+    type: DataTypes.UUID,
+    primaryKey: true,
+    allowNull: false
+  };
+
+  return sequelize.define(tableName, attributes, {
+    tableName,
+    timestamps: false
+  });
+};
+
+const checkTableExists = async (tableName) => {
+  try {
+    console.log("-1first")
+    await sequelize.queryInterface.describeTable(tableName);
+    console.log("first")
+    return true;
+  } catch (err) {
+    return false
+    if (err.name === 'SequelizeDatabaseError' || err.name === 'SequelizeUnknownTableError') {
+      console.log(err.name,"===")
+      return false;
+    }
+    throw err;
+  }
+};
+
+module.exports = {generateCreateTableQuery,validateFormData,generateDynamicModel,checkTableExists}

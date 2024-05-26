@@ -13,4 +13,22 @@ const executeQuery = async (query, params = []) => {
   }
 };
 
-module.exports = executeQuery;
+const { DataTypes } = require('sequelize');
+const sequelize = require('./db');
+
+const generateDynamicModel = (tableName, fields) => {
+  const attributes = {};
+  Object.keys(fields).forEach(key => {
+    attributes[key] = {
+      type: DataTypes.STRING, // Adjust type based on your needs
+      allowNull: false
+    };
+  });
+
+  return sequelize.define(tableName, attributes, {
+    tableName,
+    timestamps: false
+  });
+};
+
+module.exports ={ generateDynamicModel, executeQuery}
