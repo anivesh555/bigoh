@@ -63,4 +63,20 @@ function validateFormData(data) {
 
     return { valid: true };
 }
-module.exports = {generateCreateTableQuery,validateFormData}
+async function tableExists(client, tableName) {
+    const query = `
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = $1
+        );
+    `;
+    try {
+        const result = await client.query(query, [tableName]);
+        return result.rows[0].exists;
+    } catch (error) {
+        console.error('Error checking table existence:', error);
+        throw error;
+    }
+}
+module.exports = {generateCreateTableQuery,validateFormData,tableExists}

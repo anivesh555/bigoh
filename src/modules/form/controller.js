@@ -1,7 +1,7 @@
 const constants = require("../../utilities/constants");
 const { customResponse } = require("../../utilities/helper");
 const client = require("./../../Database/db")
-const {generateCreateTableQuery,validateFormData}  = require('./../../utilities/mapper')
+const {generateCreateTableQuery,validateFormData,tableExists}  = require('./../../utilities/mapper')
 const executeQuery = require('./../../Database/query')
 module.exports.createForm = async (req, res) => {
 
@@ -29,6 +29,19 @@ module.exports.createForm = async (req, res) => {
                 phoneNumber:phoneNumber.toLowerCase(),
                 isGraduate:isGraduate.toLowerCase()
             }
+            const exists = await tableExists(client, title);
+            if (exists) {
+                code = constants.HTTP_400_CODE;
+                message = `Table '${title}' already exists.`;
+                success = false;
+                const resData = customResponse({
+                    code,
+                    message,
+                    success,
+                });
+                return res.status(code).send(resData);
+                
+            }        
 
             const createTableQuery = generateCreateTableQuery(title, data);
             const result = await executeQuery(createTableQuery);
